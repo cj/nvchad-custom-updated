@@ -1,0 +1,9 @@
+doppler
+doppler-download
+asdf
+cli
+Monorepo
+Turborepo
+mailhog
+minio
+traefik
