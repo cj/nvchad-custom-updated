@@ -4,13 +4,6 @@ local jsfiles = { "javascript", "typescript", "javascriptreact", "typescriptreac
 return {
   ["folke/which-key.nvim"] = {
     disable = false,
-    module = "which-key",
-    config = function()
-      require "plugins.configs.whichkey"
-    end,
-    setup = function()
-      require("core.utils").load_mappings "whichkey"
-    end,
   },
 
   ["ldelossa/gh.nvim"] = {
