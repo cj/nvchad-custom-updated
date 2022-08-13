@@ -6,6 +6,10 @@ require("mason-lspconfig").setup({
   },
 })
 
+local function attach_navigator(client, bufnr)
+  require("navigator.lspclient.attach").on_attach(client, bufnr)
+end
+
 local navic = require("nvim-navic")
 
 local default_on_attach = function(client, bufnr)
@@ -16,8 +20,10 @@ local default_on_attach = function(client, bufnr)
   --   navic.attach(client, bufnr)
   -- end
   -- nv_on_attach(client, bufnr)
-
-  require("navigator.lspclient.attach").on_attach(client, bufnr)
+  ---@diagnostic disable-next-line: empty-block
+  if pcall(attach_navigator, client, bufnr) then
+    -- do nothing
+  end
 end
 
 local default_capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
@@ -49,11 +55,37 @@ require("mason-lspconfig").setup_handlers({
       local deno_file = io.open("./package.json", "r")
       if deno_file ~= nil then
         io.close(deno_file)
-        lspconfig[server_name].setup({
-          init_options = {
-            lint = true,
-          },
-        })
+        if server_name == "tsserver" then
+          require("typescript").setup({
+            server = {
+              init_options = {
+                preferences = {
+                  importModuleSpecifierPreference = "non-relative"
+                }
+              },
+
+              on_attach = function(client, bufnr)
+                default_on_attach(client, bufnr)
+
+                navic.attach(client, bufnr)
+
+                client.resolved_capabilities.document_formatting = false
+                client.resolved_capabilities.document_range_formatting = false
+              end,
+
+              capabilities = default_capabilities,
+
+              cmd = { "typescript-language-server", "--stdio" },
+            }
+          })
+
+        else
+          lspconfig[server_name].setup({
+            init_options = {
+              lint = true,
+            },
+          })
+        end
       end
     else
       lspconfig[server_name].setup({})
@@ -160,6 +192,18 @@ require("mason-lspconfig").setup_handlers({
     })
   end,
 
+  ["graphql"] = function()
+    lspconfig["graphql"].setup({
+      init_options = {
+        lint = true,
+        format = true,
+      },
+      filetypes = { "typescript", "typescriptreact", "graphql" },
+      cmd = { "/Users/cj/.asdf/shims/graphql-lsp", "server", "-m", "stream" },
+      root_dir = lspconfig.util.root_pattern('.git', '.graphqlrc*', '.graphql.config.*', 'graphql.config.*')
+    })
+  end,
+
   ["tailwindcss"] = function()
     lspconfig["tailwindcss"].setup({
       settings = {
@@ -211,22 +255,6 @@ require("mason-lspconfig").setup_handlers({
 
         navic.attach(client, bufnr)
       end,
-    })
-  end,
-
-  ["tsserver"] = function()
-    lspconfig["tsserver"].setup({
-      on_attach = function(client, bufnr)
-        default_on_attach(client, bufnr)
-
-        navic.attach(client, bufnr)
-
-        client.resolved_capabilities.document_formatting = false
-        client.resolved_capabilities.document_range_formatting = false
-      end,
-
-      cmd = { "typescript-language-server", "--stdio" },
-      -- cmd = { "typescript-language-server", "--stdio" },
     })
   end,
 

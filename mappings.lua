@@ -64,35 +64,6 @@ M.general = {
 
     -- switch themes
 
-  },
-}
-
-M.diagnostic = {
-  n = {},
-}
-
-M.hop = {
-  n = {
-    ["<C-Space>"] = { "<cmd>:HopPattern<cr>", "Hop" },
-    ["<Space>"] = { "<cmd>lua require'hop'.hint_words()<cr>", "Hop" },
-  },
-}
-
-M.comment = {
-  n = {
-    ["<leader> "] = { "<cmd> :lua require('Comment.api').toggle_current_linewise()<CR>", "Comment" },
-  },
-
-  v = {
-    ["<leader> "] = {
-      "<esc><cmd> :lua require('Comment.api').toggle_linewise_op(vim.fn.visualmode())<CR>",
-      "Comment",
-    },
-  },
-}
-
-M.telescope = {
-  n = {
     ["<leader>f"] = { "<cmd> Telescope find_files <CR>", "  find files" },
     ["<leader>F"] = { "<cmd> Telescope find_files follow=true no_ignore=true hidden=true <CR>", "  find all" },
     ["<leader>t"] = { "<cmd> Telescope live_grep <CR>", "  live grep" },
@@ -109,6 +80,54 @@ M.telescope = {
   }
 }
 
+M.diagnostic = {
+  n = {},
+}
+
+M.hop = {
+  n = {
+    ["<C-Space>"] = { "<cmd>:HopPattern<cr>", "Hop" },
+    ["<Space>"] = { "<cmd>lua require'hop'.hint_words()<cr>", "Hop" },
+  },
+}
+
+M.comment = {
+  n = {
+    ["<leader> "] = {
+      function()
+        require("Comment.api").toggle.linewise.current()
+      end,
+      "toggle comment",
+    },
+  },
+
+  v = {
+    ["<leader> "] = {
+      "<ESC><cmd>lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<CR>",
+      "toggle comment",
+    },
+  },
+}
+
+M.telescope = {
+  n = {
+    ["<leader>f"] = { "<cmd> Telescope find_files <CR>", "  find files" },
+    ["<leader>F"] = { "<cmd> Telescope find_files follow=true no_ignore=true hidden=true <CR>", "  find all" },
+    ["<leader>t"] = { "<cmd> Telescope live_grep <CR>", "  live grep" },
+    ["<leader>T"] = { "<cmd> lua require'telescope.builtin'.grep_string{} <CR>", "  live grep word" },
+    ["<leader>r"] = { "<cmd> Telescope oldfiles <CR>", "  find oldfiles" },
+    ["<leader>R"] = { "<cmd> lua require'telescope.builtin'.resume{}<CR>", "  find resume" },
+    ["<leader>c"] = { "<cmd> :TodoTelescope<CR>", "  Todo's" },
+    ["<leader>gs"] = { "<cmd> :Telescope git_status<CR>", "  Git status" },
+    ["<leader>y"] = { "<cmd> :Telescope neoclip<CR>", "  Neoclip" },
+    ["<C-p>"] = { "<cmd> :Telescope neoclip<CR>", "  Neoclip" },
+  },
+
+  i = {
+    ["<C-p>"] = { "<cmd> :Telescope neoclip<CR>", "  Neoclip" },
+  }
+}
+
 M.gitsigns = {
   n = {
     ["<leader>gl"] = { "<cmd> :Gitsigns blame_line<CR>", "   Git Blame Line" },
@@ -117,11 +136,24 @@ M.gitsigns = {
 
 M.nvimtree = {
   n = {
+    ["<leader>f"] = { "<cmd> Telescope find_files <CR>", "  find files" },
+    ["<leader>F"] = { "<cmd> Telescope find_files follow=true no_ignore=true hidden=true <CR>", "  find all" },
+    ["<leader>t"] = { "<cmd> Telescope live_grep <CR>", "  live grep" },
+    ["<leader>T"] = { "<cmd> lua require'telescope.builtin'.grep_string{} <CR>", "  live grep word" },
+    ["<leader>r"] = { "<cmd> Telescope oldfiles <CR>", "  find oldfiles" },
+    ["<leader>R"] = { "<cmd> lua require'telescope.builtin'.resume{}<CR>", "  find resume" },
+    ["<leader>c"] = { "<cmd> :TodoTelescope<CR>", "  Todo's" },
+    ["<leader>gs"] = { "<cmd> :Telescope git_status<CR>", "  Git status" },
+    ["<leader>y"] = { "<cmd> :Telescope neoclip<CR>", "  Neoclip" },
+    ["<C-p>"] = { "<cmd> :Telescope neoclip<CR>", "  Neoclip" },
     -- toggle
     ["<leader>e"] = { "<cmd> NvimTreeToggle <CR>", "   toggle nvimtree" },
     -- focus
     ["<leader>E"] = { "<cmd> NvimTreeFocus <CR>", "   focus nvimtree" },
   },
+  i = {
+    ["<C-p>"] = { "<cmd> :Telescope neoclip<CR>", "  Neoclip" },
+  }
 }
 
 M.lspconfig = {
@@ -226,6 +258,12 @@ M.navigator = {
     ["M"] = { "<cmd> lua require('navigator.codeAction').code_action()<CR>", "Code action" },
   },
 }
+
+--[[ M.gh = { ]]
+--[[   n = { ]]
+--[[     ["<leader>gh"] = { "" } ]]
+--[[   } ]]
+--[[ } ]]
 
 -- M.copilot = {
 --    i = {
