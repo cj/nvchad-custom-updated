@@ -26,6 +26,8 @@ return {
 
   ["folke/which-key.nvim"] = {
     disable = false,
+    keys = "<leader>",
+    module = "which-key",
     config = function()
       local wk = require("which-key")
       wk.register({
@@ -86,7 +88,12 @@ return {
         },
       }, { prefix = "<leader>" })
 
-    end
+      require "plugins.configs.whichkey"
+    end,
+
+    setup = function()
+      require("core.utils").load_mappings "whichkey"
+    end,
   },
 
   ["ldelossa/gh.nvim"] = {
@@ -156,7 +163,7 @@ return {
     end
   },
 
-  ["github/copilot.vim"] = {},
+  -- ["github/copilot.vim"] = {},
 
   ["tpope/vim-dotenv"] = {},
 
@@ -297,20 +304,20 @@ return {
 
   ["christoomey/vim-tmux-navigator"] = {},
 
-  ["zbirenbaum/copilot.lua"] = {
-    event = { "VimEnter" },
-    config = function()
-      vim.defer_fn(function()
-        require("copilot").setup({
-          cmp = {
-            enabled = true,
-            method = "getCompletionsCycling",
-            ft_disable = { "telescope" },
-          }
-        })
-      end, 100)
-    end,
-  },
+  -- ["zbirenbaum/copilot.lua"] = {
+  --   event = { "VimEnter" },
+  --   config = function()
+  --     vim.defer_fn(function()
+  --       require("copilot").setup({
+  --         cmp = {
+  --           enabled = true,
+  --           method = "getCompletionsCycling",
+  --           ft_disable = { "telescope" },
+  --         }
+  --       })
+  --     end, 100)
+  --   end,
+  -- },
 
   ["cj/guihua.lua"] = {
     run = "cd lua/fzy && make",
@@ -385,9 +392,9 @@ return {
     -- end,
   },
 
-  ["zbirenbaum/copilot-cmp"] = {
-    module = "copilot_cmp",
-  },
+  -- ["zbirenbaum/copilot-cmp"] = {
+  --   module = "copilot_cmp",
+  -- },
 
   ["mbbill/undotree"] = {},
 

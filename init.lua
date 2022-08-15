@@ -1,10 +1,12 @@
-local set = vim.opt -- set options
+local g = vim.g
+local opt = vim.opt
 
-set.fillchars = set.fillchars + "diff:╱"
+opt.fillchars = opt.fillchars + "diff:╱"
 
 vim.o.completeopt = "menu,menuone,noselect"
 
-vim.g.mapleader = ";"
+g.mapleader = ";"
+g.maplocalleader = ";"
 
 vim.lsp.set_log_level('error')
 
@@ -108,4 +110,4 @@ noremap <silent> $ g$
         endif
         echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
     endfunc
-    ]]
+]]
