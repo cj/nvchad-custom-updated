@@ -2,6 +2,29 @@
 local jsfiles = { "javascript", "typescript", "javascriptreact", "typescriptreact", "graphql" }
 
 return {
+  ['lukas-reineke/cmp-under-comparator'] = {
+  },
+
+  ['nvim-telescope/telescope-z.nvim'] = {
+    requires = {
+      { 'nvim-lua/plenary.nvim' },
+      { 'nvim-lua/popup.nvim' },
+      { 'nvim-telescope/telescope.nvim' },
+    },
+  },
+
+  ["nvim-treesitter/playground"] = {},
+  -- https://www.reddit.com/r/neovim/comments/woyyrz/documentcolornvim_lspbased_colorizer_for_neovim/
+  ["themaxmarchuk/tailwindcss-colors.nvim"] = {
+    -- load only on require("tailwindcss-colors")
+    module = "tailwindcss-colors",
+    -- run the setup function after plugin is loaded
+    config = function()
+      -- pass config options here (or nothing to use defaults)
+      require("tailwindcss-colors").setup()
+    end
+  },
+
   ["prettier/vim-prettier"] = {
     ft = { "graphql" },
     config = function()
@@ -163,7 +186,7 @@ return {
     end
   },
 
-  -- ["github/copilot.vim"] = {},
+  ["github/copilot.vim"] = {},
 
   ["tpope/vim-dotenv"] = {},
 
@@ -274,7 +297,8 @@ return {
     end,
     setup = function()
       -- load extensions
-      local extensions = { "neoclip" }
+      local extensions = { "neoclip", "z" }
+
       local present, telescope = pcall(require, "telescope")
 
       if not present then
@@ -304,23 +328,24 @@ return {
 
   ["christoomey/vim-tmux-navigator"] = {},
 
-  -- ["zbirenbaum/copilot.lua"] = {
-  --   event = { "VimEnter" },
-  --   config = function()
-  --     vim.defer_fn(function()
-  --       require("copilot").setup({
-  --         cmp = {
-  --           enabled = true,
-  --           method = "getCompletionsCycling",
-  --           ft_disable = { "telescope" },
-  --         }
-  --       })
-  --     end, 100)
-  --   end,
-  -- },
+  ["zbirenbaum/copilot.lua"] = {
+    event = { "VimEnter" },
+    config = function()
+      vim.defer_fn(function()
+        require("copilot").setup({
+          cmp = {
+            enabled = true,
+            method = "getCompletionsCycling",
+            ft_disable = { "telescope" },
+          }
+        })
+      end, 100)
+    end,
+  },
 
-  ["cj/guihua.lua"] = {
+  ["ray-x/guihua.lua"] = {
     run = "cd lua/fzy && make",
+    before = { "ray-x/navigator.lua" },
     config = function()
       require("guihua.maps").setup {
         maps = {
@@ -392,9 +417,9 @@ return {
     -- end,
   },
 
-  -- ["zbirenbaum/copilot-cmp"] = {
-  --   module = "copilot_cmp",
-  -- },
+  ["zbirenbaum/copilot-cmp"] = {
+    module = "copilot_cmp",
+  },
 
   ["mbbill/undotree"] = {},
 
@@ -471,6 +496,7 @@ return {
       vim.cmd [[
          hi GHListHl guibg=#3e4451
          hi GuihuaListHl guibg=#3e4451
+         hi GuihuaListSelHl guibg=#3e4451
       ]]
     end,
   },
