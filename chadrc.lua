@@ -1,23 +1,6 @@
 local M = {}
 
-local override = require "custom.override"
-
-M.plugins = {
-  override = {
-    ["kyazdani42/nvim-tree.lua"] = override.nvimtree,
-    ["nvim-treesitter/nvim-treesitter"] = override.treesitter,
-    ["lukas-reineke/indent-blankline.nvim"] = override.indent,
-    ["lewis6991/gitsigns.nvim"] = override.gitsigns,
-    ["NvChad/ui"] = {
-      statusline = {
-        overriden_modules = function()
-          return require "custom.plugins.statusline"
-        end,
-      },
-    },
-  },
-  user = require 'custom.plugins'
-}
+M.plugins = require 'custom.plugins'
 
 M.mappings = require "custom.mappings"
 
@@ -34,6 +17,7 @@ M.ui = {
     DiffChange = { bg = "#232c4c", fg = "NONE" },
     DiffText = { bg = "#404475", fg = "NONE" },
     DiffDelete = { bg = "#341c28", fg = "#313650" },
+    Error = { bg = "#2a1d1d", fg = "NONE", italic = true },
   },
 
   hl_add = {
@@ -73,6 +57,7 @@ M.ui = {
     NavicIconsEvent = { fg = "#56b6c2", bg = "#22262e", bold = true },
     NavicIconsOperator = { fg = "#abb2bf", bg = "#22262e", bold = true },
     NavicIconsTypeParameter = { fg = "#e06c75", bg = "#22262e", bold = true },
+    GuihuaListSelHl = { bg = "#3e4451", fg = "NONE" },
   },
 }
 

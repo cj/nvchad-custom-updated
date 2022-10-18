@@ -10,3 +10,4 @@ traefik
 Astro
 StackBlitz
 Preact
+openblas

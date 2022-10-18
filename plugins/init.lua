@@ -1,9 +1,90 @@
 -- then load your mappings
 local jsfiles = { "javascript", "typescript", "javascriptreact", "typescriptreact", "graphql" }
 
+local override = require "custom.override"
+
 return {
-  ['lukas-reineke/cmp-under-comparator'] = {
+  ["lithammer/nvim-diagnosticls"] = {},
+
+  ["HallerPatrick/py_lsp.nvim"] = {},
+
+  ["kyazdani42/nvim-tree.lua"] = {
+    override_options = override.nvimtree
   },
+
+  ["nvim-treesitter/nvim-treesitter"] = {
+    override_options = override.treesitter
+  },
+
+  ["lukas-reineke/indent-blankline.nvim"] = {
+    override_options = override.indent
+  },
+
+  ["lewis6991/gitsigns.nvim"] = {
+    override_options = override.gitsigns
+  },
+
+  ["wbthomason/packer.nvim"] = {
+    override_options = override.packer
+
+  },
+
+  ["NvChad/ui"] = {
+    override_options = {
+      statusline = {
+        overriden_modules = function()
+          return require "custom.plugins.statusline"
+        end,
+      },
+    }
+  },
+
+  ["whiteinge/diffconflicts"] = {},
+
+  ["L3MON4D3/LuaSnip"] = {
+    wants = "friendly-snippets",
+    after = "nvim-cmp",
+    config = function()
+      require("custom.plugins.luasnip")
+    end,
+  },
+
+  ["farmergreg/vim-lastplace"] = {},
+
+  ["quangnguyen30192/cmp-nvim-tags"] = {},
+
+  ["p00f/nvim-ts-rainbow"] = {
+    config = function()
+      require("nvim-treesitter.configs").setup {
+        highlight = {
+          -- ...
+        },
+        -- ...
+        rainbow = {
+          enable = true,
+          -- disable = { "jsx", "cpp" }, list of languages you want to disable the plugin for
+          extended_mode = true, -- Also highlight non-bracket delimiters like html tags, boolean or table: lang -> boolean
+          max_file_lines = nil, -- Do not enable for files with more than n lines, int
+          -- colors = {}, -- table of hex strings
+          -- termcolors = {} -- table of colour name strings
+        }
+      }
+    end
+  },
+
+  ["neoclide/jsonc.vim"] = {},
+
+  ["danymat/neogen"] = {
+    requires = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require('neogen').setup {
+        enabled = true,
+        input_after_comment = true,
+      }
+    end,
+  },
+
+  ['lukas-reineke/cmp-under-comparator'] = {},
 
   ['nvim-telescope/telescope-z.nvim'] = {
     requires = {
@@ -26,11 +107,11 @@ return {
   },
 
   ["prettier/vim-prettier"] = {
-    ft = { "graphql" },
+    ft = {},
     config = function()
-      vim.cmd [[
-        autocmd BufWritePre *.graphql,*.gql Prettier
-      ]]
+      -- vim.cmd [[
+      --   autocmd BufWritePre *.graphql,*.gql Prettier
+      -- ]]
     end
   },
 
@@ -176,9 +257,9 @@ return {
 
   ["barreiroleo/ltex_extra.nvim"] = {},
 
-  ["jason0x43/nvim-navic"] = {
+  ["SmiteshP/nvim-navic"] = {
     requires = "nvim-lspconfig",
-    branch = "symbolinformation-support",
+    -- branch = "symbolinformation-support",
     config = function()
       require("nvim-navic").setup {
         highlight = true
@@ -192,10 +273,14 @@ return {
 
   ["zorab47/procfile.vim"] = {},
 
+  ["nvim-lua/plenary.nvim"] = {
+    rm_default_opts = true
+  },
+
   ["sindrets/diffview.nvim"] = {
-    after = "plenary.nvim",
     requires = "nvim-lua/plenary.nvim",
   },
+
 
   ["tpope/vim-abolish"] = {},
 
@@ -313,7 +398,54 @@ return {
     end,
   },
 
-  ["RRethy/vim-illuminate"] = {},
+  -- ["andymass/vim-matchup"] = {},
+
+  ["xiyaowong/nvim-cursorword"] = {},
+
+  -- ["RRethy/vim-illuminate"] = {
+  --   config = function()
+  --     require('illuminate').configure({
+  --       -- providers: provider used to get references in the buffer, ordered by priority
+  --       providers = {
+  --         'lsp',
+  --         'treesitter',
+  --         'regex',
+  --       },
+  --       -- delay: delay in milliseconds
+  --       delay = 100,
+  --       -- filetype_overrides: filetype specific overrides.
+  --       -- The keys are strings to represent the filetype while the values are tables that
+  --       -- supports the same keys passed to .configure except for filetypes_denylist and filetypes_allowlist
+  --       filetype_overrides = {},
+  --       -- filetypes_denylist: filetypes to not illuminate, this overrides filetypes_allowlist
+  --       filetypes_denylist = {
+  --         'dirvish',
+  --         'fugitive',
+  --         'telescope',
+  --         'nvimtree',
+  --         'graphql',
+  --         'GraphQL',
+  --         'NvimTree',
+  --       },
+  --       -- filetypes_allowlist: filetypes to illuminate, this is overriden by filetypes_denylist
+  --       -- filetypes_allowlist = {},
+  --       -- modes_denylist: modes to not illuminate, this overrides modes_allowlist
+  --       modes_denylist = { 'i' },
+  --       -- modes_allowlist: modes to illuminate, this is overriden by modes_denylist
+  --       modes_allowlist = { 'n' },
+  --       -- providers_regex_syntax_denylist: syntax to not illuminate, this overrides providers_regex_syntax_allowlist
+  --       -- Only applies to the 'regex' provider
+  --       -- Use :echom synIDattr(synIDtrans(synID(line('.'), col('.'), 1)), 'name')
+  --       providers_regex_syntax_denylist = { 'graphql', 'graphqlparameter', 'graphqlkeyword', 'GraphQL' },
+  --       -- providers_regex_syntax_allowlist: syntax to illuminate, this is overriden by providers_regex_syntax_denylist
+  --       -- Only applies to the 'regex' provider
+  --       -- Use :echom synIDattr(synIDtrans(synID(line('.'), col('.'), 1)), 'name')
+  --       -- providers_regex_syntax_allowlist = {},
+  --       -- under_cursor: whether or not to illuminate under the cursor
+  --       under_cursor = true,
+  --     })
+  --   end
+  -- },
 
   ["Pocco81/TrueZen.nvim"] = {
     cmd = {
@@ -328,20 +460,27 @@ return {
 
   ["christoomey/vim-tmux-navigator"] = {},
 
+  -- ["hrsh7th/cmp-copilot"] = {},
+
   ["zbirenbaum/copilot.lua"] = {
     event = { "VimEnter" },
     config = function()
       vim.defer_fn(function()
-        require("copilot").setup({
-          cmp = {
-            enabled = true,
-            method = "getCompletionsCycling",
-            ft_disable = { "telescope" },
-          }
-        })
+        require("copilot").setup()
       end, 100)
     end,
   },
+
+  ["zbirenbaum/copilot-cmp"] = {
+    after = { "copilot.lua" },
+    module = "copilot_cmp",
+    config = function()
+      require("copilot_cmp").setup {
+        method = "getCompletionsCycling",
+      }
+    end
+  },
+
 
   ["ray-x/guihua.lua"] = {
     run = "cd lua/fzy && make",
@@ -402,8 +541,6 @@ return {
   },
 
   ["tzachar/cmp-tabnine"] = {
-    after = "nvim-cmp",
-    requires = "hrsh7th/nvim-cmp",
     run = "./install.sh",
     -- config = function()
     --   local tabnine = require "cmp_tabnine.config"
@@ -415,10 +552,6 @@ return {
     --     snippet_placeholder = "..",
     --   }
     -- end,
-  },
-
-  ["zbirenbaum/copilot-cmp"] = {
-    module = "copilot_cmp",
   },
 
   ["mbbill/undotree"] = {},
@@ -463,11 +596,12 @@ return {
     config = function()
       require("navigator").setup {
         default_mapping = false,
-        mason = true,
+        -- mason = true,
         icons = {
           code_action_icon = '💡'
         },
         lsp = {
+          disable_lsp = { "denols", "tsserver", "astro", "pyright" },
           disply_diagnostic_qf = false,
           enable = true, -- skip lsp setup if disabled make sure add require('navigator.lspclient.mapping').setup() in you
           -- own on_attach
@@ -492,12 +626,6 @@ return {
           },
         },
       }
-
-      vim.cmd [[
-         hi GHListHl guibg=#3e4451
-         hi GuihuaListHl guibg=#3e4451
-         hi GuihuaListSelHl guibg=#3e4451
-      ]]
     end,
   },
 }

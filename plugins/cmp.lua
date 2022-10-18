@@ -71,6 +71,9 @@ local options = {
       require("luasnip").lsp_expand(args.body)
     end,
   },
+  formatters = {
+    insert_text = require("copilot_cmp.format").remove_existing
+  },
   formatting = {
     format = function(entry, vim_item)
       local icons = require("nvchad_ui.icons").lspkind
@@ -112,7 +115,7 @@ local options = {
     ["<C-Space>"] = cmp.mapping.complete(),
     ---@diagnostic disable-next-line: unused-local
     ['<C-e>'] = cmp.mapping(function(fallback)
-      cmp.mapping.close()
+      cmp.close()
       vim.api.nvim_feedkeys(vim.fn['copilot#Accept'](vim.api.nvim_replace_termcodes('<Tab>', true, true, true)), 'n',
         true)
     end),
@@ -147,7 +150,8 @@ local options = {
   },
   sources = {
     { name = "copilot", group_index = 2, max_item_count = 5 },
-    { name = "cmp_tabnine", group_index = 2, max_item_count = 5 },
+    { name = "cmp_tabnine", group_index = 2, max_item_count = 3 },
+    { name = "tags", group_index = 2, max_item_count = 3 },
     { name = "nvim_lsp", group_index = 2, max_item_count = 10 },
     { name = "treesitter", group_index = 2, max_item_count = 5 },
     { name = "luasnip", group_index = 2, max_item_count = 5 },
@@ -158,6 +162,9 @@ local options = {
   sorting = {
     priority_weight = 2,
     comparators = {
+      require("copilot_cmp.comparators").prioritize,
+      require("copilot_cmp.comparators").score,
+      require('cmp_tabnine.compare'),
       lspkind_comparator({
         kind_priority = {
           Field = 11,
@@ -188,9 +195,6 @@ local options = {
         },
       }),
       label_comparator,
-      require("copilot_cmp.comparators").prioritize,
-      require("copilot_cmp.comparators").score,
-      require('cmp_tabnine.compare'),
 
       -- Below is the default comparitor list and order for nvim-cmp
       cmp.config.compare.offset,

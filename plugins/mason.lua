@@ -1,11 +1,46 @@
 -- https://github.com/ahmedelgabri/dotfiles/blob/c2e2e3718e769020f1468048e33e60ad8a97edfc/config/.vim/lua/_/lsp.lua#L329-L378
 local lspconfig = require("lspconfig")
+local configs = require("lspconfig.configs")
+local util = require("lspconfig.util")
+
+require('neogen').setup {
+  enabled = true,
+  input_after_comment = true,
+}
 
 require("mason-lspconfig").setup({
   ensure_installed = {
     "prettier"
   },
 })
+
+local path = util.path
+
+local function get_python_path(workspace)
+  -- Use activated virtualenv.
+  if vim.env.VIRTUAL_ENV then
+    return path.join(vim.env.VIRTUAL_ENV, 'bin', 'python')
+  end
+
+  -- Find and use virtualenv via poetry in workspace directory.
+  -- local match = vim.fn.glob(path.join(workspace, 'poetry.lock'))
+  -- if match ~= '' then
+  --   local venv = vim.fn.trim(vim.fn.system('poetry env info -p'))
+  --   return path.join(venv, 'bin', 'python')
+  -- end
+  -- Find and use virtualenv in workspace directory.
+  for _, pattern in ipairs({ '.venv', 'venv' }) do
+    local match = path.join(workspace, pattern, 'pyvenv.cfg')
+    if match ~= '' then
+      return path.join(path.dirname(match), 'bin', 'python')
+    end
+  end
+
+  print('moo')
+
+  -- Fallback to system Python.
+  return exepath('python3') or exepath('python') or 'python'
+end
 
 local function attach_navigator(client, bufnr)
   require("navigator.lspclient.attach").on_attach(client, bufnr)
@@ -17,9 +52,9 @@ local default_on_attach = function(client, bufnr)
   client.resolved_capabilities.document_formatting = true
   client.resolved_capabilities.document_range_formatting = true
 
-  -- if client.server_capabilities.documentSymbolProvider then
-  --   navic.attach(client, bufnr)
-  -- end
+  if client.server_capabilities.documentSymbolProvider then
+    navic.attach(client, bufnr)
+  end
   -- nv_on_attach(client, bufnr)
   ---@diagnostic disable-next-line: empty-block
   if pcall(attach_navigator, client, bufnr) then
@@ -27,20 +62,22 @@ local default_on_attach = function(client, bufnr)
   end
 end
 
-local default_capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local default_capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 lspconfig.util.default_config = vim.tbl_extend("force", lspconfig.util.default_config, {
   on_attach = default_on_attach,
   capabilities = default_capabilities,
 })
 
--- We don't want linting in node_modules
-vim.cmd [[
-  autocmd BufRead,BufNewFile */node_modules/* lua vim.diagnostic.disable(0)
-  autocmd BufRead,BufNewFile */tmp/* lua vim.diagnostic.disable(0)
-  autocmd BufRead,BufNewFile *.astro set ft=astro
-  autocmd BufRead,BufNewFile tsconfig.json setlocal filetype=jsonc
-]]
+local python_root_files = {
+  'WORKSPACE', -- added for Bazel; items below are from default config
+  'pyproject.toml',
+  'setup.py',
+  'setup.cfg',
+  'requirements.txt',
+  'Pipfile',
+  'pyrightconfig.json',
+}
 
 require("mason-lspconfig").setup_handlers({
   function(server_name)
@@ -55,9 +92,9 @@ require("mason-lspconfig").setup_handlers({
         })
       end
     elseif server_name == "tsserver" or server_name == "eslint" then
-      local deno_file = io.open("./package.json", "r")
-      if deno_file ~= nil then
-        io.close(deno_file)
+      local packageJson = io.open("./package.json", "r")
+      if packageJson ~= nil then
+        io.close(packageJson)
         if server_name == "tsserver" then
           require("typescript").setup({
             server = {
@@ -99,21 +136,30 @@ require("mason-lspconfig").setup_handlers({
     lspconfig["sourcery"].setup({
       init_options = {
         token = "user_MBPBdLmUO_nvnEkRBeZezXVCM5KND_2O0NWgPxJMLREefJptPKbLosQ0ySM"
-      }
-    })
-  end,
-
-  ["pylsp"] = function()
-    lspconfig["pylsp"].setup({
-      init_options = {
-        lint = true,
-        format = true,
       },
-
-      cmd = { "/Users/cj/.asdf/shims/pylsp" },
-      -- cmd = { "pylsp" },
+      capabilities = default_capabilities,
     })
   end,
+
+  -- ["pylsp"] = function()
+  --   lspconfig["pylsp"].setup({
+  --     init_options = {
+  --       lint = true,
+  --       format = true,
+  --     },
+  --
+  --     settings = {
+  --       configurationSources = { "flake8" },
+  --       formatCommand = { "black" }
+  --     },
+  --
+  --     -- on_attach = default_on_attach,
+  --
+  --     cmd = { "/Users/cj/.asdf/shims/pylsp" },
+  --     -- cmd = { "pylsp" },
+  --     capabilities = default_capabilities
+  --   })
+  -- end,
 
   ["eslint"] = function()
     lspconfig["eslint"].setup({
@@ -122,8 +168,14 @@ require("mason-lspconfig").setup_handlers({
         "javascriptreact",
         "astro",
         "typescript",
-        "typescriptreact"
+        "typescriptreact",
+        "html"
       },
+      on_attach = function(client, bufnr)
+        default_on_attach(client, bufnr)
+      end,
+
+      capabilities = default_capabilities,
       -- cmd = { "/Users/cj/.asdf/shims/vscode-json-language-server", "--stdio" },
       cmd = { "vscode-eslint-language-server", "--stdio" },
     })
@@ -134,8 +186,20 @@ require("mason-lspconfig").setup_handlers({
       -- cmd = { "/Users/cj/.asdf/shims/vscode-json-language-server", "--stdio" },
       cmd = { "vscode-json-language-server", "--stdio" },
       filetypes = { "json", "jsonc" },
+      init_options = {
+        lint = true,
+        format = true,
+      },
       settings = {
         json = {
+          format = {
+            enable = true,
+          },
+
+          validate = {
+            enable = true,
+          },
+
           -- Schemas https://www.schemastore.org
           schemas = {
             {
@@ -237,6 +301,7 @@ require("mason-lspconfig").setup_handlers({
         lint = false,
         format = false,
       },
+
       settings = {
         css = {
           lint = {
@@ -245,8 +310,13 @@ require("mason-lspconfig").setup_handlers({
         }
       },
 
-      -- cmd = { "/Users/cj/.asdf/shims/vscode-css-language-server", "--stdio" },
-      cmd = { "vscode-css-language-server", "--stdio" },
+      cmd = { "/Users/cj/.asdf/shims/vscode-css-language-server", "--stdio" },
+      -- cmd = { "vscode-css-language-server", "--stdio" },
+      on_attach = function(client, bufnr)
+        default_on_attach(client, bufnr)
+      end,
+
+      capabilities = default_capabilities,
     })
   end,
 
@@ -262,6 +332,11 @@ require("mason-lspconfig").setup_handlers({
 
       cmd = { "/Users/cj/.asdf/shims/stylelint-lsp", "--stdio" },
       -- cmd = { "stylelint-lsp", "--stdio" },
+      on_attach = function(client, bufnr)
+        default_on_attach(client, bufnr)
+      end,
+
+      capabilities = default_capabilities,
     })
   end,
 
@@ -279,6 +354,18 @@ require("mason-lspconfig").setup_handlers({
 
   ["tailwindcss"] = function()
     lspconfig["tailwindcss"].setup({
+      filetypes = {
+        "javascriptreact",
+        "javascript.jsx",
+        "typescript.tsx",
+        "typescriptreact",
+        "astro",
+        "scss",
+        "css",
+        "svelte",
+        "solid",
+        "vue"
+      },
       settings = {
         tailwindCSS = {
           lint = {
@@ -312,8 +399,10 @@ require("mason-lspconfig").setup_handlers({
   ["solargraph"] = function()
     lspconfig["solargraph"].setup({
       -- cmd = { "solargraph", "stdio" },
-      cmd = { "/Users/cj/.asdf/shims/solargraph", "stdio" },
-      -- cmd = { "solargraph", "stdio" },
+      -- cmd = { "bundle exec solargraph", "stdio" },
+      -- cmd = { "bundle", "exec", "solargraph", "stdio" },
+      -- cmd = { "bundle", "exec", "solargraph" },
+      -- cmd = { "/Users/cj/.asdf/shims/solargraph", "stdio" },
 
       root_dir = lspconfig.util.root_pattern("Gemfile", ".git"),
 
@@ -335,20 +424,207 @@ require("mason-lspconfig").setup_handlers({
 
         navic.attach(client, bufnr)
       end,
+      capabilities = default_capabilities,
+    })
+  end,
+
+  ['jedi_language_server'] = function()
+    lspconfig["jedi_language_server"].setup({
+      settings = {
+        jedi = {
+          diagnostics = {
+            enabled = true,
+            didOpen = true,
+            didChange = true,
+            didSave = true,
+          }
+        }
+      },
+
+      -- root_dir = lspconfig.util.root_pattern(unpack(python_root_files)),
+      on_attach = function(client, bufnr)
+        attach_navigator(client, bufnr)
+        default_on_attach(client, bufnr)
+      end,
+      capabilities = default_capabilities,
+    })
+  end,
+
+  ["html"] = function()
+    lspconfig["html"].setup({
+      capabilities = default_capabilities,
+      on_attach = default_on_attach,
+      cmd = { "vscode-html-language-server", "--stdio" },
+      filetypes = { "html" },
+      init_options = {
+        lint = true,
+        format = true,
+        configurationSection = { "html", "css", "javascript" },
+        embeddedLanguages = {
+          css = true,
+          javascript = true
+        },
+        provideFormatter = true
+      },
+      settings = {},
+      single_file_support = true
     })
   end,
 
   ["pyright"] = function()
     lspconfig["pyright"].setup({
+      root_dir = lspconfig.util.root_pattern(unpack(python_root_files)),
+      on_attach = function(client, bufnr)
+        attach_navigator(client, bufnr)
+        default_on_attach(client, bufnr)
+      end,
+      on_init = function(client)
+        client.config.settings.python.pythonPath = get_python_path(client.config.root_dir)
+      end,
+      capabilities = default_capabilities,
+      -- settings = {
+      --   python = {
+      --     analysis = {
+      --       autoSearchPaths = true,
+      --       diagnosticMode = "workspace",
+      --       useLibraryCodeForTypes = true,
+      --     }
+      --   }
+      -- }
+    })
+  end,
+
+  ["astro"] = function()
+    lspconfig["astro"].setup({
+      init_options = {
+        typescript = {
+          serverPath = "/Users/cj/.asdf/installs/nodejs/16.17.0/.npm/lib/node_modules/typescript"
+        }
+      },
+
+      cmd = { "/Users/cj/.asdf/shims/astro-ls", "--stdio" },
+
       on_attach = function(client, bufnr)
         default_on_attach(client, bufnr)
 
-        navic.attach(client, bufnr)
+        attach_navigator(client, bufnr)
       end,
+
       capabilities = default_capabilities,
     })
   end,
 })
+
+-- local eslint = {
+--   -- lintCommand = "eslint_d -f unix --stdin --stdin-filename ${INPUT}",
+--   -- lintStdin = true,
+--   -- lintFormats = { "%f:%l:%c: %m" },
+--   -- lintIgnoreExitCode = true,
+--   formatCommand = "eslint_d --fix-to-stdout --stdin --stdin-filename=${INPUT}",
+--   formatStdin = true
+-- }
+-- local function eslint_config_exists()
+--   local eslintrc = vim.fn.glob(".eslintrc*", 0, 1)
+--
+--   if not vim.tbl_isempty(eslintrc) then
+--     return true
+--   end
+--
+--   local packageJson = io.open("./package.json", "r")
+--   if packageJson ~= nil then
+--     io.close(packageJson)
+--     return true
+--   end
+--
+--   return false
+-- end
+--
+-- lspconfig.efm.setup {
+--   on_attach = function(client, bufnr)
+--     client.resolved_capabilities.document_formatting = true
+--     client.resolved_capabilities.goto_definition = false
+--     default_on_attach(client, bufnr)
+--
+--     -- navic.attach(client, bufnr)
+--   end,
+--   capabilities = default_capabilities,
+--   root_dir = function()
+--     if not eslint_config_exists() then
+--       return nil
+--     end
+--     return vim.fn.getcwd()
+--   end,
+--   settings = {
+--     lint = false,
+--     languages = {
+--       javascript = { eslint },
+--       javascriptreact = { eslint },
+--       ["javascript.jsx"] = { eslint },
+--       typescript = { eslint },
+--       ["typescript.tsx"] = { eslint },
+--       typescriptreact = { eslint }
+--     }
+--   },
+--   filetypes = {
+--     "javascript",
+--     "javascriptreact",
+--     "javascript.jsx",
+--     "typescript",
+--     "typescript.tsx",
+--     "typescriptreact",
+--     "astro"
+--   },
+-- }
+
+vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
+  vim.lsp.diagnostic.on_publish_diagnostics,
+  {
+    underline = true,
+    virtual_text = false,
+    update_in_insert = true,
+  }
+)
+
+if not configs.ruby_lsp then
+  local enabled_features = {
+    "documentHighlights",
+    "documentSymbols",
+    "foldingRanges",
+    "selectionRanges",
+    "semanticHighlighting",
+    "formatting",
+    "codeActions",
+    "diagnostics"
+  }
+
+  configs.ruby_lsp = {
+    default_config = {
+      cmd = { "bundle", "exec", "ruby-lsp" },
+      filetypes = { "ruby" },
+      root_dir = util.root_pattern("Gemfile", ".git"),
+      capabilities = default_capabilities,
+      init_options = {
+        enabledFeatures = enabled_features,
+      },
+      settings = {},
+    },
+    commands = {
+      FormatRuby = {
+        function()
+          vim.lsp.buf.format({
+            name = "ruby_lsp",
+            async = true,
+          })
+        end,
+        description = "Format using ruby-lsp",
+      },
+    },
+  }
+end
+
+lspconfig.ruby_lsp.setup({ on_attach = default_on_attach, capabilities = default_capabilities })
+
+-- require 'py_lsp'.setup {}
 
 lspconfig["ltex"].setup {
   cmd = { "ltex-ls" },
@@ -373,3 +649,26 @@ lspconfig["ltex"].setup {
     }
   }
 }
+
+local diagnosticls = require("diagnosticls")
+
+lspconfig.diagnosticls.setup({
+  filetypes = {
+    "python",
+    -- unpack(diagnosticls.filetypes),
+  },
+  init_options = {
+    linters = vim.tbl_deep_extend("force", diagnosticls.linters, {
+      flake8 = {
+        rootPatterns = { ".flake8", "setup.cfg", "tox.ini", "pyproject.toml" },
+      },
+    }),
+    formatters = diagnosticls.formatters,
+    filetypes = {
+      python = { "flake8", "dmypy" },
+    },
+    formatFiletypes = {
+      python = { "isort", "black" },
+    },
+  },
+})

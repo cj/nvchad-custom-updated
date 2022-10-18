@@ -91,7 +91,6 @@ M.nvimtree = {
   },
   view = {
     width = 35,
-    height = 30,
     hide_root_folder = true,
     side = "left",
     number = false,
@@ -223,6 +222,14 @@ M.gitsigns = {
 }
 
 M.treesitter = {
+  autotag = {
+    enable = true,
+  },
+
+  matchup = {
+    enable = true, -- mandatory, false will disable the whole extension
+  },
+
   context_commentstring = {
     enable = true,
     enable_autocmd = false,
@@ -236,6 +243,23 @@ M.treesitter = {
     --   }
     -- }
   }
+}
+
+M.packer = {
+  auto_clean = true,
+  compile_on_sync = true,
+  git = { clone_timeout = 6000 },
+  max_jobs = 10,
+  display = {
+    working_sym = "ﲊ",
+    error_sym = "✗ ",
+    done_sym = " ",
+    removed_sym = " ",
+    moved_sym = "",
+    open_fn = function()
+      return require("packer.util").float { border = "single" }
+    end,
+  },
 }
 
 return M
